@@ -31,22 +31,28 @@
         <el-table-column type="expand"><!--展开内容-->
           <template slot-scope="props">
             <el-form label-position="right" class="demo-table-expand">
-              <el-form-item label="具体位置">
-                <span>{{ props.row.houseAddr}}</span>
-              </el-form-item>
-              <el-form-item label="房屋面积">
-                <span>{{ props.row.houseArea}} （平方米）</span>
-              </el-form-item>
-              <el-form-item label="业务员代码">
-                <span>{{ props.row.houseAgency}}</span>
-              </el-form-item>
-              <el-form-item label="业务员姓名">
-                <span>{{ props.row.agencyName}}</span>
-              </el-form-item>
-              <el-form-item label="联系电话">
-                <span>{{ props.row.agencyPhone}}</span>
-              </el-form-item>
-
+              <el-col :span="12">
+                <el-form-item label="具体位置">
+                  <span>{{ props.row.houseAddr}}</span>
+                </el-form-item>
+                <el-form-item label="房屋面积">
+                  <span>{{ props.row.houseArea}} （平方米）</span>
+                </el-form-item>
+                <el-form-item label="房屋描述" style="width: 100%">
+                  <span style="width: 80%;">{{props.row.houseDescribe}}</span>
+                </el-form-item>
+              </el-col>
+              <el-col :span="10">
+                <el-form-item label="业务员代码">
+                  <span>{{ props.row.houseAgency}}</span>
+                </el-form-item>
+                <el-form-item label="业务员姓名">
+                  <span>{{ props.row.agencyName}}</span>
+                </el-form-item>
+                <el-form-item label="联系电话">
+                  <span>{{ props.row.agencyPhone}}</span>
+                </el-form-item>
+              </el-col>
             </el-form>
           </template>
         </el-table-column>
@@ -91,15 +97,36 @@
           sortable>
         </el-table-column>
         <el-table-column
+          label="销售情况"
+          prop="houseType"
+          :filters="[{ text: '在售', value: 'onsale' }, { text: '已下架', value: 'canceled' }, { text: '已售出', value: 'sold' }]"
+          :filter-method="filterStatus"
+          filter-placement="bottom-end">
+          <template slot-scope="props">
+            <el-tag type="success" v-if="props.row.houseStatus==='onsale'">在售</el-tag>
+            <el-tag type="info" v-if="props.row.houseStatus==='canceled'">已下架</el-tag>
+            <el-tag type="danger" v-if="props.row.houseStatus==='sold'">已售出</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column
           align="center">
+
           <template slot-scope="scope">
+            <el-button
+              :disabled="scope.row.houseStatus!=='onsale'"
+              size="mini"
+              type="primary"
+              round
+              @click="clickAppointment(scope.row)">看房
+            </el-button>
             <el-button
               class="el-icon-delete"
               size="mini"
               type="danger"
               round
-              @click="clickDelete(scope.row)">删除
+              @click="clickDelete(scope.row)">
             </el-button>
+
           </template>
         </el-table-column>
       </el-table>
@@ -130,7 +157,8 @@
         currentPage: 1,//当前页码，默认第一页开始
         total: 0,//信息总条数
         loading: true,
-        buyer:'b1'
+        user: this.$store.getters.getRoles,
+        buyer: this.$store.getters.getUserId
       }
     },
     computed: {
@@ -158,6 +186,9 @@
         return this.collect//如不搜索，表格内显示house[]的数据
       }
     },
+    /*    created(){
+          this.buyer = this.$store.getters.getUserId
+        },*/
     mounted() {
       this.$axios.get("http://localhost:8080/Collect/findCollect/" + this.buyer).then(response => {
         console.log(response);
@@ -166,14 +197,14 @@
           this.collect.push(response.data[i])//把后端返回的信息存如house[]
         }
         this.total = response.data.length;//记录分页信息总条数
-        this.loading=false;//loading动画结束
+        this.loading = false;//loading动画结束
       }).catch(response => {
         console.log(response);
         console.log(response.data);
       })
     },
     /**
-buyer
+     buyer
      */
     methods: {
       clickDelete(row) {
@@ -191,7 +222,7 @@ buyer
             {
               headers: {'Content-Type': 'application/json;charset=UTF-8'}
             }
-          ).then(response=>{
+          ).then(response => {
             console.log(response);
             console.log(response.data);
 
@@ -202,7 +233,6 @@ buyer
 
             this.reload();//刷新
 
-
           })
 
 
@@ -212,6 +242,68 @@ buyer
             message: '已取消删除'
           });
         });
+      },
+      clickAppointment(row) {
+        this.$confirm('是否需要预约中介看房?', '预约看房', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+        }).then(() => {
+          let data = {
+            dealHouse: row.houseId,
+            dealAgency: row.houseAgency,
+            dealBuyer: this.buyer,
+            dealStatus:'ing'
+          };
+          console.log(data);
+          this.$axios.post("http://localhost:8080/Deal/saveDeal", JSON.stringify(data),
+            {
+              headers: {'Content-Type': 'application/json;charset=UTF-8'}
+            }
+          ).then(response => {
+            console.log(response);
+            console.log(response.data);
+            if (response.data === 'info_needed') {
+              this.$message({
+                showClose: true,
+                message: '信息有误',
+                type: 'warning'
+              });
+            } else if (response.data === "success") {
+              this.$confirm('业务员 ' + row.agencyName + '将与您联系。欢迎致电' + row.agencyPhone, '预约成功', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'success'
+              }).then(() => {
+                this.$message({
+                  showClose: true,
+                  message: '预约成功 业务员将与您联系',
+                  type: 'success'
+                });
+              })
+            } else if (response.data === "deal_existed") {
+              this.$message({
+                showClose: true,
+                message: '房屋已售出',
+                type: 'warning'
+              });
+            }else if (response.data === "deal_ing") {
+              this.$message({
+                showClose: true,
+                message: '已经预约过了',
+                type: 'warning'
+              });
+            }else{//其他情况全部联系业务员
+              this.$message({
+                showClose: true,
+                message: '预约失败 请联系业务员了解',
+                type: 'error'
+              });
+            }
+
+
+          })
+
+        })
       },
       clearFilter() {//清除表单筛选
         this.$message('清除筛选');
@@ -225,11 +317,10 @@ buyer
       filterLayout(value, row) {
         return row.houseLayout === value;
       },
-/*      filterChange:function(filters){
-        console.log(filters);
-        console.log(filters.Type)
-        console.log("kukukukukuk")
-      },*/
+      //筛选 房屋状态信息
+      filterStatus(value, row) {
+        return row.houseStatus === value;
+      },
     }
 
 
@@ -237,18 +328,18 @@ buyer
 </script>
 
 <style>
-    .demo-table-expand {
-      font-size: 0;
-    }
+  .demo-table-expand {
+    font-size: 0;
+  }
 
-    .demo-table-expand label {
-      width: 90px;
-      color: #99a9bf;
-    }
+  .demo-table-expand label {
+    width: 90px;
+    color: #99a9bf;
+  }
 
-    .demo-table-expand .el-form-item {
-      margin-right: 0;
-      margin-bottom: 0;
-      width: 50%;
-    }
+  .demo-table-expand .el-form-item {
+    margin-right: 0;
+    margin-bottom: 0;
+    width: 50%;
+  }
 </style>

@@ -12,7 +12,7 @@
           </div>
         </el-col>
         <el-col :span="8">
-          <div class="clearFilter" style="text-align: right;width: 60%">
+          <div class="clearFilter" style="text-align: right;width: 82%">
             <el-button @click="clearFilter" size="small">清除筛选</el-button>
           </div>
         </el-col>
@@ -24,30 +24,35 @@
         stripe
         style="width: 100%"
         row-key="houseId"
-        
+
 
         v-loading="loading"
       ><!---->
         <el-table-column type="expand"><!--展开内容-->
           <template slot-scope="props">
             <el-form label-position="left" class="demo-table-expand">
-
-              <el-form-item label="具体位置">
-                <span>{{ props.row.houseAddr}}</span>
-              </el-form-item>
-              <el-form-item label="房屋面积">
-                <span>{{ props.row.houseArea}} （平方米）</span>
-              </el-form-item>
-              <el-form-item label="业务员代码">
-                <span>{{ props.row.houseAgency}}</span>
-              </el-form-item>
-              <el-form-item label="业务员姓名">
-                <span>{{ props.row.agencyName}}</span>
-              </el-form-item>
-              <el-form-item label="联系电话">
-                <span>{{ props.row.agencyPhone}}</span>
-              </el-form-item>
-
+              <el-col :span="12">
+                <el-form-item label="具体位置">
+                  <span>{{ props.row.houseAddr}}</span>
+                </el-form-item>
+                <el-form-item label="房屋面积">
+                  <span>{{ props.row.houseArea}} （平方米）</span>
+                </el-form-item>
+                <el-form-item label="房屋描述" style="width: 100%">
+                  <span style="width: 80%;">{{props.row.houseDescribe}}</span>
+                </el-form-item>
+              </el-col>
+              <el-col :span="10">
+                <el-form-item label="业务员代码">
+                  <span>{{ props.row.houseAgency}}</span>
+                </el-form-item>
+                <el-form-item label="业务员姓名">
+                  <span>{{ props.row.agencyName}}</span>
+                </el-form-item>
+                <el-form-item label="联系电话">
+                  <span>{{ props.row.agencyPhone}}</span>
+                </el-form-item>
+              </el-col>
             </el-form>
           </template>
         </el-table-column>
@@ -91,29 +96,37 @@
           prop="housePrice"
           sortable>
         </el-table-column>
-        <!--        <el-table-column
-                  align="right">
-                  <template slot-scope="scope">
-                    <el-button
-                      size="mini"
-                      @click="handleEdit(scope.$index, scope.row)">Edit
-                    </el-button>
-                    <el-button
-                      size="mini"
-                      type="danger"
-                      @click="handleDelete(scope.$index, scope.row)">Delete
-                    </el-button>
-                  </template>
-                </el-table-column>-->
+        <el-table-column
+          label="销售情况"
+          prop="houseType"
+          :filters="[{ text: '在售', value: 'onsale' }, { text: '已下架', value: 'canceled' }, { text: '已售出', value: 'sold' }]"
+          :filter-method="filterStatus"
+          filter-placement="bottom-end">
+          <template slot-scope="props">
+            <el-tag type="success" v-if="props.row.houseStatus==='onsale'">在售</el-tag>
+            <el-tag type="info" v-if="props.row.houseStatus==='canceled'">已下架</el-tag>
+            <el-tag type="danger" v-if="props.row.houseStatus==='sold'">已售出</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="收藏房屋">
+          <template slot-scope="scope">
+            <el-button
+              class="el-icon-star-on"
+              size="mini"
+              type="warning"
+              @click="clickCollect(scope.row)">
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
       <div class="pages" style="text-align: center;padding-top: 3%">
-<!--        <el-pagination
-          background
-          layout="prev, pager, next,jumper"
-          :total="total"
-          @current-change="current_change"
-        >&lt;!&ndash;分页&ndash;&gt;
-        </el-pagination>-->
+        <!--        <el-pagination
+                  background
+                  layout="prev, pager, next,jumper"
+                  :total="total"
+                  @current-change="current_change"
+                >&lt;!&ndash;分页&ndash;&gt;
+                </el-pagination>-->
       </div>
     </div>
 
@@ -127,13 +140,15 @@
     data() {
       return {
         house: [],
-       // housedata:[],
-        raw:[],
+        // housedata:[],
+        raw: [],
         search: '',
         pagesize: 10,//每页条数
         currentPage: 1,//当前页码，默认第一页开始
         total: 0,//信息总条数
-        loading:true,
+        loading: true,
+        user:this.$store.getters.getRoles,
+        userId:this.$store.getters.getUserId,
       }
     },
     computed: {
@@ -169,7 +184,7 @@
           this.house.push(response.data[i])//把后端返回的信息存如house[]
         }
         this.total = response.data.length;//记录分页信息总条数
-        this.loading=false;//loading end
+        this.loading = false;//loading end
       }).catch(response => {
         console.log(response);
         console.log(response.data);
@@ -188,44 +203,106 @@
       filterLayout(value, row) {
         return row.houseLayout === value;
       },
-/*      filterChange:function(filters){
-        console.log(filters);
-        console.log(filters.Type)
-        console.log("kukukukukuk")
-      },*/
-      //分页 切换页面
-/*      current_change: function (currentPage) {
-        this.currentPage = currentPage;
-      },*/
-/*      my_desc_sort(a, b) {
-        if (a.housePrice > b.housePrice) {
-          return -1
-        } else if (a.housePrice < b.housePrice) {
-          return 1
-        } else {
-          return 0
+      //筛选 房屋状态信息
+      filterStatus(value, row) {
+        return row.houseStatus === value;
+      },
+      //点击收藏
+      clickCollect(row){
+        if (this.user!=="Buyer"){//当前页面非买家登录
+          this.$confirm('请买家登录账号', '权限不足', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+          }).then(()=>{
+            this.$message({
+              message: `将跳转到登陆页面 `,
+              type: 'info'
+            });
+            this.$router.push('../login')//跳转到登录界面
+          })
         }
-      },*/
-/*      my_asc_sort(a, b) {
-        if (a.housePrice < b.housePrice) {
-          return -1
-        } else if (a.housePrice > b.housePrice) {
-          return 1
-        } else {
-          return 0
-        }
-      },*/
-/*      sort_change(column) {
-        this.currentPage = 1 // return to the first page after sorting
-        if (column.prop === 'housePrice') {
-          if (column.order === 'descending') {
-            this.house = this.house.sort(this.my_desc_sort)
-          } else if (column.order === 'ascending') {
-            this.house = this.house.sort(this.my_asc_sort)
+        else{//当前页面买家登录
+          let data = {
+            collectHouse: row.houseId,
+            collectBuyer:this.user
           }
+          //收藏房屋
+          this.$axios.post('http://localhost:8080/Collect/Save', JSON.stringify(data),
+            {
+              headers: {'Content-Type': 'application/json;charset=UTF-8'}
+            }
+          ).then(response => {
+            console.log(response);
+            console.log(response.data);
+            if (response.data==='success'){
+              this.$message({
+                message: `收藏成功 `,
+                type: 'success'
+              });
+            }else if(response.data==='collect_existed'){
+              this.$message({
+                message: `您已经收藏过这套房了 `,
+                type: 'warning'
+              });
+            }else if(response.data==='info_needed'){
+              this.$message({
+                message: `信息有误 `,
+                type: 'warning'
+              });
+            }else{
+              this.$message({
+                message: `收藏出错 `,
+                type: 'error'
+              });
+            }
+          }).catch((response)=>{
+            console.log(response);
+            console.log(response.data);
+            this.$message({
+              message: `收藏出错 请重试`,
+              type: 'error'
+            });
+          })
         }
-        this.housedata = this.house.slice(0, this.pagesize) // show only one page
-      }*/
+      }
+      /*      filterChange:function(filters){
+              console.log(filters);
+              console.log(filters.Type)
+              console.log("kukukukukuk")
+            },*/
+      //分页 切换页面
+      /*      current_change: function (currentPage) {
+              this.currentPage = currentPage;
+            },*/
+      /*      my_desc_sort(a, b) {
+              if (a.housePrice > b.housePrice) {
+                return -1
+              } else if (a.housePrice < b.housePrice) {
+                return 1
+              } else {
+                return 0
+              }
+            },*/
+      /*      my_asc_sort(a, b) {
+              if (a.housePrice < b.housePrice) {
+                return -1
+              } else if (a.housePrice > b.housePrice) {
+                return 1
+              } else {
+                return 0
+              }
+            },*/
+      /*      sort_change(column) {
+              this.currentPage = 1 // return to the first page after sorting
+              if (column.prop === 'housePrice') {
+                if (column.order === 'descending') {
+                  this.house = this.house.sort(this.my_desc_sort)
+                } else if (column.order === 'ascending') {
+                  this.house = this.house.sort(this.my_asc_sort)
+                }
+              }
+              this.housedata = this.house.slice(0, this.pagesize) // show only one page
+            }*/
     }
 
 

@@ -15,15 +15,15 @@
 
         </el-col>
       </el-row>
-      <!--:data="housedata.slice((currentPage-1)*pagesize,currentPage*pagesize)"-->
+      <!--:data="housedata.slice((currentPage-1)*pagesize,currentPage*pagesize)"@sort-change='sort_change'
+        @filter-change="filterChange"-->
       <el-table
         :data="agencydata"
         ref="agencyref"
         stripe
         style="width: 100%"
         row-key="agencyId"
-        @sort-change='sort_change'
-        @filter-change="filterChange"
+
         v-loading="loading"
       >
         <el-table-column

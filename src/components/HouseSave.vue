@@ -5,24 +5,24 @@
              width="100px">
       <div style="width: 100%;">
         <div class="grid-content bg-purple-light">
-          <el-form-item label="小区名" style="width: 77%" prop="houseName">
-            <el-input v-model="house.houseName" placeholder="请输入小区名"></el-input>
+          <el-form-item label="小区名称" style="width: 77%" prop="houseName">
+            <el-input v-model="house.houseName" placeholder="请输入小区名称"></el-input>
           </el-form-item>
         </div>
 
         <el-form-item label="房屋地址" style="width: 100%" required>
           <el-row :gutter="1">
-            <el-col :span="6">
+            <el-col :span="3">
               <el-form-item label="" prop="Addr.a_building">
                 <el-input v-model="house.Addr.a_building" placeholder="楼栋号"></el-input>
               </el-form-item>
             </el-col>
-            <el-col :span="6">
+            <el-col :span="3">
               <el-form-item label="" prop="Addr.a_unit">
                 <el-input v-model="house.Addr.a_unit" placeholder="单元号"></el-input>
               </el-form-item>
             </el-col>
-            <el-col :span="6">
+            <el-col :span="3">
               <el-form-item label="" prop="Addr.a_doors">
                 <el-input v-model="house.Addr.a_doors" placeholder="门牌号"></el-input>
               </el-form-item>
@@ -56,7 +56,11 @@
             <template slot="append">万元/平方米</template>
           </el-input>
         </el-form-item>
-
+        <el-form-item label="房屋描述" style="width: 53%" prop="houseDescribe">
+          <el-input maxlength="200" type="textarea" :autosize="{ minRows: 2}" v-model="house.houseDescribe"
+                    placeholder="请输入您对房屋的简要描述（200字以内）">
+          </el-input>
+        </el-form-item>
         <el-form-item label="业务员" style="width: 80%" prop="radioA">
           <el-row :gutter="1">
             <el-col :span="4">
@@ -103,7 +107,7 @@
 
         </el-form-item>
         <el-form-item style="text-align: right;width: 77%">
-          <el-button type="primary" @click="submit(houseRules)">提交委托</el-button>
+          <el-button type="primary" @click="submit(houseRules)">确认修改</el-button>
         </el-form-item>
       </div>
     </el-form>
@@ -123,9 +127,10 @@
           houseType: '',
           houseArea: '',
           houseStatus: 'onsale',
-          houseOwner: 'test',
+          houseOwner: this.$store.getters.getUserId,
           houseAgency: '',
           houseLayout: '',
+          houseDescribe: '',
           Addr: {
             a_building: '',
             a_unit: '',
@@ -212,7 +217,7 @@
             },*/
       /*输入提示结束*/
       /**上传信息*/
-      submit: function (houseRules) {
+      submit(houseRules) {
         this.$refs[houseRules].validate((valid) => {
           if (valid) {//如果输入验证通过
             this.loading = true;//loading效果

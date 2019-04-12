@@ -2,7 +2,10 @@
   <div style="width: 100%">
     <div style="width: 45%; text-align:center; margin:auto ;border: midnightblue">
 
-      <h1>{{msg}}</h1>
+      <h1 v-if="this.form.user==='Owner'">房主{{msg}}</h1>
+      <h1 v-else-if="this.form.user==='Agency'">业务员{{msg}}</h1>
+      <h1 v-else-if="this.form.user==='Buyer'">买家{{msg}}</h1>
+      <h1 v-else>{{msg}}</h1>
       <!--登录框-->
       <el-form ref="form" :model="form" label-width="80px" style="text-align: center">
         <el-form-item label="用户名">
@@ -148,11 +151,11 @@
                 <el-option label="女士" value="f">女士</el-option>
               </el-select>
             </el-form-item>
-            <el-form-item label="目标代理费" prop="agencyFee">
+<!--            <el-form-item label="目标代理费" prop="agencyFee">
               <el-input v-model="Agency.agencyFee" placeholder="请输入您的目标代理收费" prop="agencyFee" autocomplete="off">
                 <template slot="append">元</template>
               </el-input>
-            </el-form-item>
+            </el-form-item>-->
           </el-form>
         </div>
         <div slot="footer" class="dialog-footer">
@@ -161,12 +164,14 @@
         </div>
       </el-dialog>
       <!--注册 中介 结束-->
-
+{{$store.getters.getRoles}}
     </div>
   </div>
 </template>
 
 <script>
+  import $store from "../store";
+
   export default {
     name: "LoginAndRegister",
     data() {
@@ -186,6 +191,7 @@
       };
       return {
         //登陆数据
+        test:'',
         form: {
           username: '',
           password: '',
@@ -205,7 +211,7 @@
           ownerName: '',
           ownerSelfid: '',
           ownerSex: '',
-          ownerType: '',
+          //ownerType: '',
           ownerPhone: '',
         },
         //房主注册表单规则
@@ -290,6 +296,11 @@
       }
 
     },
+    computed:{
+      show(){
+        return this.$store.getters.getRoles
+      }
+    },
     methods: {
       //根据注册后台返回值响应
       onRegMessage: function (info) {
@@ -331,6 +342,11 @@
             message: '登陆成功',
             type: 'success'
           });
+          this.$store.commit('storeRoles',this.form.user);//修改vuex中roles
+          this.$store.commit('storeUserId',this.form.username);////修改vuex中用户账号
+          //this.test=this.$store.getters.getRoles
+          //console.log(this.show)
+          //console.log(this.$store.getters.getRoles)
         } else if (info === "failed") {
           this.$message({
             showClose: true,

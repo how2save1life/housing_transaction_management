@@ -1,0 +1,65 @@
+import Vue from 'vue'
+import Vuex from 'vuex'
+
+Vue.use(Vuex)
+
+function storeLocalStore(state) {
+  window.sessionStorage.setItem("userMsg", JSON.stringify(state));
+}
+
+const state = {
+  //存储用户权限信息，初始时为空
+  info: {
+    roles: 'visitor',
+    userId: ''
+  },
+
+}
+
+const getters = {
+    getRoles: state => state.info.roles,
+    getUserId: state => state.info.userId,
+    getInfo: state => state.info
+/*  getRoles(state) {
+    return state.info.roles
+  },
+  getUserId(state) {
+    return state.info.userId
+  },
+  getInfo(state) {
+    return state.info
+  }*/
+}
+
+const mutations = {
+  //添加用户权限，如果存在，不添加
+  storeRoles(state, roles) {
+    state.info.roles = roles
+    storeLocalStore(state)
+    console.log('get')
+    console.log(this.state.info.roles)
+
+  },
+  storeUserId(state, id) {
+    state.info.userId = id
+    storeLocalStore(state)
+    console.log('lll')
+    console.log(state.info.userId)
+  },
+}
+
+const actions = {
+  storeRoles: ({commit}, {roles}) => {
+    commit('storeRoles', {roles});
+  },
+  storeUserId: ({commit}, {id}) => {
+    commit('storeUserId', {id});
+  }
+}
+
+export default new Vuex.Store({
+  state,
+  getters,
+  actions,
+  mutations
+})
