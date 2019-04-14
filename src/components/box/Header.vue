@@ -1,12 +1,10 @@
 <template>
   <div class="header">
-    <el-header style="display:flex;justify-content:flex-end;align-items:center;padding:20px;">
+    <!--<el-header style="display:flex;justify-content:flex-end;align-items:center;padding:20px;">
 
-    </el-header>
-
-    <el-dialog :visible.sync="visible" title="Hello world">
-      <p>弹窗</p>
-    </el-dialog>
+    </el-header>-->
+{{this.$store.getters.getRoles}}
+    {{this.$store.getters.getUserId}}
   </div>
 </template>
 

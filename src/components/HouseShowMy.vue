@@ -24,10 +24,26 @@
         stripe
         style="width: 1500px"
         row-key="houseId"
-
         v-loading="loading"
       ><!---->
-
+        <el-table-column type="expand"><!--展开内容-->
+          <template slot-scope="scope">
+            <el-form label-position="left" class="demo-table-expand">
+              <el-upload
+                :action="imgAction(scope.row)"
+                :data="scope.row.houseId"
+                list-type="picture-card"
+                :limit="3"
+                :on-preview="handlePictureCardPreview"
+                :on-remove="handleRemove">
+                <i class="el-icon-plus"></i>
+              </el-upload>
+              <el-dialog :visible.sync="dialogVisible">
+                <img width="100%" src="img" alt="">
+              </el-dialog>
+            </el-form>
+          </template>
+        </el-table-column>
         <!--以下是--标题内容-->
         <el-table-column
           label="新房/二手"
@@ -147,27 +163,21 @@
 
           </template>
         </el-table-column>
+
+
       </el-table>
-      <!--   <div class="pages" style="text-align: center;padding-top: 3%">
-             <el-pagination
-                  background
-                  layout="prev, pager, next,jumper"
-                  :total="total"
-                  @current-change="current_change"
-                >&lt;!&ndash;分页&ndash;&gt;
-                </el-pagination>
-      </div>-->
+
     </div>
 
     <!-------------------------------------------------------------------------------------------------------------------------->
     <el-dialog
       title="修改房屋"
-
       width="500px"
       :visible.sync="dialogUpdateVisible"
     >
       <div style="margin: auto">
-        <el-form :model="update" :ref="update" width="100%" :label-position="labelPosition" label-width="100px" :rules="updateRules">
+        <el-form :model="update" :ref="update" width="100%" :label-position="labelPosition" label-width="100px"
+                 :rules="updateRules">
           <el-form-item label="小区名称" style="width: 80%" prop="houseName">
             <el-input v-model="update.houseName" placeholder="请输入小区名称" disabled></el-input>
           </el-form-item>
@@ -273,6 +283,9 @@
     name: "HouseShowMy",
     data() {
       return {
+        //dialogImageUrl:'',
+        img:"../static/pics/house/1/1.jpg",
+        dialogVisible: false,
         house: [],
         search: '',
         labelPosition: 'right',
@@ -339,6 +352,7 @@
         for (let i = 0; i < response.data.length; i++) {
           this.house.push(response.data[i])//把后端返回的信息存如house[]
         }
+
         //this.total = response.data.length;//记录分页信息总条数
         this.loading = false;//loading end
       }).catch(response => {
@@ -360,6 +374,20 @@
       })
     },
     methods: {
+      dialogImageUrl(row){
+        console.log(row.houseName+'../static' + row.housePic)
+        return '../static' + row.housePic;
+      },
+      imgAction(row) {
+        return 'http://localhost:8080/Pic/House/' + row.houseId
+      },
+      handleRemove(file, fileList) {
+        console.log(file, fileList);
+      },
+      handlePictureCardPreview(file) {
+        this.dialogImageUrl = file.url;
+        this.dialogVisible = true;
+      },
       //清除表单筛选
       clearFilter() {
         this.$message('清除筛选');
@@ -447,7 +475,7 @@
                   headers: {'Content-Type': 'application/json;charset=UTF-8'}
                 }
               ).then(response => {
-                console.log("RRRR")
+                //console.log("RRRR")
                 console.log(response);
                 console.log(response.data);
                 if (response.data === "success") {//提示成功

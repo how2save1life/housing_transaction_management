@@ -50,12 +50,12 @@ export const constantRouterMap = [
       },{
         path: '/myhouse',
         component: resolve => require(['../components/HouseShowMy.vue'], resolve),//懒加载
-        meta: {title: '我的房屋', requiresAuth: false}
+        meta: {role: ['Owner'], title: '我的房屋', requiresAuth: true}
       },
       {
         path: '/me',
         component: resolve => require(['../components/UserShow.vue'], resolve),//懒加载
-        meta: {title: '我的信息', requiresAuth: false}
+        meta: {role: ['Buyer','Owner','Agency'],title: '我的信息', requiresAuth: true}
       },
     ]
   },

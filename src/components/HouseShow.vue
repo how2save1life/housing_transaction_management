@@ -99,7 +99,7 @@
         <el-table-column
           label="销售情况"
           prop="houseType"
-          :filters="[{ text: '在售', value: 'onsale' }, { text: '已下架', value: 'canceled' }, { text: '已售出', value: 'sold' }]"
+          :filters="[{ text: '在售', value: 'onsale' },{ text: '已下架', value: 'canceled' }, { text: '已售出', value: 'sold' }]"
           :filter-method="filterStatus"
           filter-placement="bottom-end">
           <template slot-scope="props">
@@ -147,8 +147,8 @@
         currentPage: 1,//当前页码，默认第一页开始
         total: 0,//信息总条数
         loading: true,
-        user:this.$store.getters.getRoles,
-        userId:this.$store.getters.getUserId,
+        user: this.$store.getters.getRoles,
+        userId: this.$store.getters.getUserId,
       }
     },
     computed: {
@@ -208,12 +208,12 @@
         return row.houseStatus === value;
       },
       //点击收藏
-      clickCollect(row){
-        if (this.user!=="Buyer"){//当前页面非买家登录
+      clickCollect(row) {
+        if (this.user !== "Buyer") {//当前页面非买家登录
           this.$confirm('请买家登录账号', '权限不足', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
-          }).then(()=>{
+          }).then(() => {
             this.$message({
               message: `将跳转到登陆页面 `,
               type: 'info'
@@ -221,10 +221,10 @@
             this.$router.push('../login')//跳转到登录界面
           })
         }
-        else{//当前页面买家登录
+        else {//当前页面买家登录
           let data = {
             collectHouse: row.houseId,
-            collectBuyer:this.user
+            collectBuyer: this.user
           }
           //收藏房屋
           this.$axios.post('http://localhost:8080/Collect/Save', JSON.stringify(data),
@@ -234,28 +234,28 @@
           ).then(response => {
             console.log(response);
             console.log(response.data);
-            if (response.data==='success'){
+            if (response.data === 'success') {
               this.$message({
                 message: `收藏成功 `,
                 type: 'success'
               });
-            }else if(response.data==='collect_existed'){
+            } else if (response.data === 'collect_existed') {
               this.$message({
                 message: `您已经收藏过这套房了 `,
                 type: 'warning'
               });
-            }else if(response.data==='info_needed'){
+            } else if (response.data === 'info_needed') {
               this.$message({
                 message: `信息有误 `,
                 type: 'warning'
               });
-            }else{
+            } else {
               this.$message({
                 message: `收藏出错 `,
                 type: 'error'
               });
             }
-          }).catch((response)=>{
+          }).catch((response) => {
             console.log(response);
             console.log(response.data);
             this.$message({
