@@ -7,7 +7,7 @@ import router from './router'
 import store from './store'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
-
+import 'font-awesome/css/font-awesome.min.css'
 
 Vue.use(ElementUI);
 Vue.prototype.$axios = axios;
@@ -33,7 +33,7 @@ router.beforeEach((to, from, next) => {
   //alert('???????')
   console.log("beforeEach ", role)
   console.log("beforeEach ", store.getters.getUserId)
-  if (role === 'visitor') {//未登录
+ /* if (role === 'visitor') {//未登录
     if (to.path !== '/login') {//跳转到登录页
       console.log("!!!!login!!!")
       return next({path: '/login'});
@@ -45,18 +45,33 @@ router.beforeEach((to, from, next) => {
     if (to.meta.requiresAuth && to.meta.role.indexOf(role) === -1) {//需要验证，role不正确
       console.log("用户不对 需要登录")
       next({path: '/login'})
-/*      this.$confirm('请登录, 是否继续?', '权限不足', {
+/!*      this.$confirm('请登录, 是否继续?', '权限不足', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning',
       }).then(() => {
           return next({path: '/login'})
         }
-      )*/
+      )*!/
       //next();
     } else {
       next()
     }
+  }*/
+  if (to.meta.requiresAuth && to.meta.role.indexOf(role) === -1) {//需要验证，role不正确
+    console.log("用户不对 需要登录")
+    next({path: '/login'})
+    /*      this.$confirm('请登录, 是否继续?', '权限不足', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+          }).then(() => {
+              return next({path: '/login'})
+            }
+          )*/
+    //next();
+  } else {
+    next()
   }
   if (to.meta.title) {//换title
     document.title = to.meta.title

@@ -123,7 +123,7 @@
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload"
           >
-            <img v-if="imageUrl" :src="imageUrl" class="avatar">
+            <img v-if="imageUrl" :src="imageUrl" class="avatar"  :onerror="headpic">
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
           <p>我的头像（点击修改）</p>
@@ -141,9 +141,11 @@
 
 <script>
   export default {
+    inject:['reload'],
     name: "UserShow",
     data() {
       return {
+        headpic: 'this.src="' + require('../../static/pics/head/head.jpg') + '"',
         userId: this.$store.getters.getUserId,
         roles: this.$store.getters.getRoles,
         //接收相应用户信息
@@ -194,7 +196,28 @@
     methods: {
       //成功后 返回图片
       handleAvatarSuccess(res, file) {
-        this.imageUrl = URL.createObjectURL(file.raw);
+       this.imageUrl = URL.createObjectURL(file.raw);
+        switch (this.roles) {
+          case"Agency":
+            //this.url='../static' + response.data.agencyHead
+            this.$store.commit('storeUserHead', this.user.agencyHead);////修改vuex中用户头像
+            //console.log(this.$store.getters.getUserHead)
+            break;
+          case "Buyer":
+            //this.url='../static' + response.data.buyerHead
+            this.$store.commit('storeUserHead', this.user.buyerHead);////修改vuex中用户头像
+            //console.log(this.$store.getters.getUserHead)
+            break;
+          case "Owner":
+            //this.url='../static' + response.data.ownerHead
+            this.$store.commit('storeUserHead', this.user.ownerHead);////修改vuex中用户头像
+            //console.log(this.$store.getters.getUserHead)
+            break;
+        }
+        setTimeout(() =>{
+          window.location.reload()
+        },1000);
+
       },
       //验证是否为图片，图片大小
       beforeAvatarUpload(file, id) {
@@ -218,7 +241,7 @@
           alert('成功');
           console.log(fd)
         })*/
-        return isJPG && isLt2M;
+        return (isJPG||isPNG) && isLt2M;
       },
       updateUser() {
         this.$confirm('确认修改个人信息', '修改个人信息', {

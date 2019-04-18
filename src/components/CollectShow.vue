@@ -1,7 +1,6 @@
 <template>
   <div class="CollectShow" style="margin: auto;">
     <div class="table">
-
       <el-row :gutter="5">
         <el-col :span="15">
           <div class="searchWord" style="text-align: left;width: 80%">
@@ -12,7 +11,7 @@
           </div>
         </el-col>
         <el-col :span="8">
-          <div class="clearFilter" style="text-align: right;width: 60%">
+          <div class="clearFilter" style="text-align: right;width: 95%">
             <el-button @click="clearFilter" size="small">清除筛选</el-button>
           </div>
         </el-col>
@@ -31,6 +30,7 @@
         <el-table-column type="expand"><!--展开内容-->
           <template slot-scope="props">
             <el-form label-position="right" class="demo-table-expand">
+              <el-row>
               <el-col :span="12">
                 <el-form-item label="具体位置">
                   <span>{{ props.row.houseAddr}}</span>
@@ -53,6 +53,16 @@
                   <span>{{ props.row.agencyPhone}}</span>
                 </el-form-item>
               </el-col>
+              </el-row>
+              <el-row>
+                <el-carousel :interval="4000" height="300px" width="90%">
+                  <el-carousel-item v-for="item in imagebox(props.row)" :key="item.id">
+                    <div style="text-align: center;width: 100%">
+                      <img :src="item.idView" :onerror="errorpic" style=" height: 300px;">
+                    </div>
+                  </el-carousel-item>
+                </el-carousel>
+              </el-row>
             </el-form>
           </template>
         </el-table-column>
@@ -108,9 +118,7 @@
             <el-tag type="danger" v-if="props.row.houseStatus==='sold'">已售出</el-tag>
           </template>
         </el-table-column>
-        <el-table-column
-          align="center">
-
+        <el-table-column label="操作">
           <template slot-scope="scope">
             <el-button
               :disabled="scope.row.houseStatus!=='onsale'"
@@ -151,6 +159,7 @@
     inject: ['reload'], // 引入方法 实现删除后自动刷新
     data() {
       return {
+        errorpic: 'this.src="' + require('../../static/pics/house/nopic.jpg') + '"',
         collect: [],
         search: '',
         pagesize: 10,//每页条数
@@ -207,6 +216,14 @@
      buyer
      */
     methods: {
+      imagebox(row) {
+        console.log(row.housePic)
+        var pics = [];
+        for (var i = 1; i < 6; i++) {
+          pics.push({id: i, idView: "../../static" + row.housePic + i.toString() + ".jpg"});
+        }
+        return pics
+      },
       clickDelete(row) {
         console.log(row)
         this.$confirm('此操作删除该条房屋收藏, 是否继续?', '删除收藏', {
@@ -249,10 +266,11 @@
           cancelButtonText: '取消',
         }).then(() => {
           let data = {
+            dealOwner:row.houseOwner,
             dealHouse: row.houseId,
             dealAgency: row.houseAgency,
             dealBuyer: this.buyer,
-            dealStatus:'ing'
+            dealStatus: 'ing'
           };
           console.log(data);
           this.$axios.post("http://localhost:8080/Deal/saveDeal", JSON.stringify(data),
@@ -286,13 +304,13 @@
                 message: '房屋已售出',
                 type: 'warning'
               });
-            }else if (response.data === "deal_ing") {
+            } else if (response.data === "deal_ing") {
               this.$message({
                 showClose: true,
                 message: '已经预约过了',
                 type: 'warning'
               });
-            }else{//其他情况全部联系业务员
+            } else {//其他情况全部联系业务员
               this.$message({
                 showClose: true,
                 message: '预约失败 请联系业务员了解',

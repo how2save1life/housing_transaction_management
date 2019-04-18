@@ -23,7 +23,6 @@
         stripe
         style="width: 100%"
         row-key="agencyId"
-
         v-loading="loading"
       >
         <el-table-column

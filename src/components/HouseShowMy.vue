@@ -1,7 +1,6 @@
 <template>
   <div class="HouseShowMy" style="margin: auto;">
-    <div class="table">
-
+    <div class="table" style="height: 100%;">
       <el-row :gutter="5">
         <el-col :span="15">
           <div class="searchWord" style="text-align: left;width: 80%">
@@ -12,7 +11,7 @@
           </div>
         </el-col>
         <el-col :span="8">
-          <div class="clearFilter" style="text-align: right;width: 60%">
+          <div class="clearFilter" style="text-align: right;width: 90%">
             <el-button @click="clearFilter" size="small">清除筛选</el-button>
           </div>
         </el-col>
@@ -22,29 +21,94 @@
         :data="housedata"
         ref="houseref"
         stripe
+        :expand-row-keys="expands"
         style="width: 1500px"
         row-key="houseId"
+        height="500px"
         v-loading="loading"
       ><!---->
-        <el-table-column type="expand"><!--展开内容-->
+        <el-table-column type="expand" style="padding-left: 0"><!--展开内容:disabled="scope.row.houseStatus==='sold'"-->
           <template slot-scope="scope">
             <el-form label-position="left" class="demo-table-expand">
-              <el-upload
-                :action="imgAction(scope.row)"
-                :data="scope.row.houseId"
-                list-type="picture-card"
-                :limit="3"
-                :on-preview="handlePictureCardPreview"
-                :on-remove="handleRemove">
-                <i class="el-icon-plus"></i>
-              </el-upload>
-              <el-dialog :visible.sync="dialogVisible">
-                <img width="100%" src="img" alt="">
-              </el-dialog>
+              <el-row :gutter="4">
+                <!--imgAction(scope.row,index.one)-->
+                <el-col :span="3.5">
+                  <el-upload
+                    class="avatar-uploader"
+                    :before-upload="beforeAvatarUpload"
+                    :on-success="handleAvatarSuccess"
+                    :action="imgAction(scope.row,index.one)"
+                    :show-file-list="false"
+                  >
+                    <img v-if="imageUrl(scope.row,index.one)" :src="imageUrl(scope.row,index.one)" class="avatar":onerror="addpic">
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                  </el-upload>
+                </el-col>
+                <el-col :span="3.5">
+                  <el-upload
+                    class="avatar-uploader"
+                    :before-upload="beforeAvatarUpload"
+                    :action="imgAction(scope.row,index.two)"
+                    :show-file-list="false"
+                    :auto-upload="true"
+                    :on-success="handleAvatarSuccess"
+                  >
+                    <img v-if="imageUrl(scope.row,index.two)" :src="imageUrl(scope.row,index.two)" :onerror="addpic"
+                         class="avatar">
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                  </el-upload>
+                </el-col>
+                <el-col :span="3.5">
+                  <el-upload
+                    class="avatar-uploader"
+                    :before-upload="beforeAvatarUpload"
+                    :action="imgAction(scope.row,index.three)"
+                    :show-file-list="false"
+                    :auto-upload="true"
+                    :on-success="handleAvatarSuccess"
+
+                  >
+                    <img v-if="imageUrl(scope.row,index.three)" :src="imageUrl(scope.row,index.three)" :onerror="addpic"
+                         class="avatar">
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                  </el-upload>
+                </el-col>
+                <el-col :span="3.5">
+                  <el-upload
+                    class="avatar-uploader"
+                    :before-upload="beforeAvatarUpload"
+                    :action="imgAction(scope.row,index.four)"
+                    :show-file-list="false"
+                    :auto-upload="true"
+                    :on-success="handleAvatarSuccess"
+                  >
+                    <img v-if="imageUrl(scope.row,index.four)" :src="imageUrl(scope.row,index.four)" :onerror="addpic"
+                         class="avatar">
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                  </el-upload>
+                </el-col>
+                <el-col :span="3.5">
+                  <el-upload
+                    class="avatar-uploader"
+                    :before-upload="beforeAvatarUpload"
+                    :action="imgAction(scope.row,index.five)"
+                    :show-file-list="false"
+                    :auto-upload="true"
+                    :on-success="handleAvatarSuccess"
+                  >
+                    <img v-if="imageUrl(scope.row,index.five)" :src="imageUrl(scope.row,index.five)" :onerror="addpic"
+                         class="avatar">
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                  </el-upload>
+                </el-col>
+              </el-row>
+
+
             </el-form>
           </template>
         </el-table-column>
         <!--以下是--标题内容-->
+        <el-table-column label="序号" type="index" width="60" align="center"></el-table-column>
         <el-table-column
           label="新房/二手"
           prop="houseType"
@@ -103,19 +167,6 @@
         >
         </el-table-column>
         <el-table-column
-          label="销售情况"
-          prop="houseType"
-          :filters="[{ text: '在售', value: 'onsale' }, { text: '已下架', value: 'canceled' }, { text: '已售出', value: 'sold' }]"
-          :filter-method="filterStatus"
-          filter-placement="bottom-end"
-          width="150">
-          <template slot-scope="props">
-            <el-tag type="success" v-if="props.row.houseStatus==='onsale'">在售</el-tag>
-            <el-tag type="info" v-if="props.row.houseStatus==='canceled'">已下架</el-tag>
-            <el-tag type="danger" v-if="props.row.houseStatus==='sold'">已售出</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column
           label="房屋描述"
           prop="houseDescribe"
           width="200"
@@ -135,12 +186,25 @@
               </div>
             </el-popover>
           </template>
-
         </el-table-column>
         <el-table-column
-          label="操作"
           fixed="right"
-          width="150"
+          label="销售情况"
+          prop="houseType"
+          :filters="[{ text: '在售', value: 'onsale' }, { text: '已下架', value: 'canceled' }, { text: '已售出', value: 'sold' }]"
+          :filter-method="filterStatus"
+          filter-placement="bottom-end"
+          width="90">
+          <template slot-scope="props">
+            <el-tag type="success" v-if="props.row.houseStatus==='onsale'">在售</el-tag>
+            <el-tag type="info" v-if="props.row.houseStatus==='canceled'">已下架</el-tag>
+            <el-tag type="danger" v-if="props.row.houseStatus==='sold'">已售出</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="修改信息"
+          fixed="right"
+          width="85"
         >
           <template slot-scope="scope">
             <!-- update button -->
@@ -152,14 +216,14 @@
               round
               @click="clickSetCurrent(scope.row)">
             </el-button>
-            <el-button
+            <!--<el-button
               :disabled="scope.row.houseStatus==='sold'"
               class="el-icon-delete"
               size="mini"
               type="danger"
               round
               @click="clickSetCurrent(scope.row)">
-            </el-button>
+            </el-button>-->
 
           </template>
         </el-table-column>
@@ -283,8 +347,13 @@
     name: "HouseShowMy",
     data() {
       return {
-        //dialogImageUrl:'',
-        img:"../static/pics/house/1/1.jpg",
+        url: 'http://localhost:8080/Pic/House/0',
+        addpic: 'this.src="' + require('../../static/pics/house/add.jpg') + '"',
+        fileList: [],
+        expands: [],
+        index: {
+          one: '1', two: '2', three: '3', four: '4', five: '5'
+        },
         dialogVisible: false,
         house: [],
         search: '',
@@ -351,8 +420,8 @@
         console.log(response.data);
         for (let i = 0; i < response.data.length; i++) {
           this.house.push(response.data[i])//把后端返回的信息存如house[]
+          this.expands.push(response.data[i].houseId)
         }
-
         //this.total = response.data.length;//记录分页信息总条数
         this.loading = false;//loading end
       }).catch(response => {
@@ -374,19 +443,34 @@
       })
     },
     methods: {
-      dialogImageUrl(row){
-        console.log(row.houseName+'../static' + row.housePic)
-        return '../static' + row.housePic;
+      imageUrl(row, index) {
+        if (row.housePic !== '' || row.housePic !== null) {
+          // console.log("../static" + row.housePic)
+          return "../static" + row.housePic + index + ".jpg"
+        }
+        else return false;
       },
-      imgAction(row) {
-        return 'http://localhost:8080/Pic/House/' + row.houseId
+      imgAction(row, index) {
+        //console.log('http://localhost:8080/Pic/House/' + row.houseId)
+        return 'http://localhost:8080/Pic/House/' + index + "," + row.houseId
       },
-      handleRemove(file, fileList) {
-        console.log(file, fileList);
+      //upload 上传前钩子
+      beforeAvatarUpload(file, id) {
+        const isJPG = file.type === 'image/jpg';
+        const isJPEG = file.type === 'image/jpeg'
+        const isLt2M = file.size / 1024 / 1024 < 2;
+        if (!isJPG && !isJPEG) {
+          this.$message.error('上传头像图片只能是 JPG 格式!');
+        }
+        if (!isLt2M) {
+          this.$message.error('上传头像图片大小不能超过 2MB!');
+        }
+        return (isJPG||isJPEG) && isLt2M;
       },
-      handlePictureCardPreview(file) {
-        this.dialogImageUrl = file.url;
-        this.dialogVisible = true;
+      //upload 成功钩子
+      handleAvatarSuccess(res, file) {
+        //this.reload()//刷新
+        window.location.reload()
       },
       //清除表单筛选
       clearFilter() {
@@ -528,8 +612,9 @@
 </script>
 
 <style>
-
-
+  .el-table__expanded-cell[class*="cell"]{
+    padding-left: 0;
+  }
   .demo-table-expand label {
     width: 90px;
     color: #99a9bf;
@@ -541,5 +626,31 @@
     width: 50%;
   }
 
+  .avatar-uploader .el-upload {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
 
+  .avatar-uploader .el-upload:hover {
+    border-color: #409EFF;
+  }
+
+  .avatar-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    line-height: 178px;
+    text-align: center;
+  }
+
+  .avatar {
+    width: 178px;
+    height: 178px;
+    display: block;
+
+  }
 </style>

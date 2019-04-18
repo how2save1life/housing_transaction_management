@@ -1,5 +1,5 @@
 <template>
-  <div style="margin: auto;width: 80%">
+  <div class="HouseSave" style="margin: auto;width: 80%">
     <!--<h1>??????????????????</h1>-->
     <el-form v-loading="loading" :model="house" :ref="house" status-icon :rules="houseRules" label-width="80px"
              width="100px">
@@ -77,7 +77,7 @@
             </el-col>
             <el-col :span="8">
               <el-form-item prop="houseAgency" v-if="house.radioA==='2'"
-                            :rules="{required: true, message: '请选择业务员', trigger: 'blur'}">
+                            :rules="{required: true, message: '请选择业务员', trigger: 'change'}">
                 <el-autocomplete class="my-autocomplete"
                                  v-model="house.houseAgency" value-key="agencyId"
                                  :fetch-suggestions="querySearchAsync" @select="handleSelect"
@@ -107,7 +107,7 @@
 
         </el-form-item>
         <el-form-item style="text-align: right;width: 77%">
-          <el-button type="primary" @click="submit(houseRules)">确认修改</el-button>
+          <el-button type="primary" @click="submit(houseRules)">上传信息</el-button>
         </el-form-item>
       </div>
     </el-form>
@@ -129,6 +129,7 @@
           houseStatus: 'onsale',
           houseOwner: this.$store.getters.getUserId,
           houseAgency: '',
+          randomAgency: '',
           houseLayout: '',
           houseDescribe: '',
           Addr: {
@@ -165,14 +166,14 @@
       /**得到一个随机agency*/
       this.$axios.get("http://localhost:8080/Agency/findRandomOne").then(response => {
         console.log(response);
-        console.log(response.data);
+        console.log(response.data, '???', this.house.houseAgency);
         if (response.data == null) {
           console.log("fail get random agency");
         } else {
-          if (this.radioA === '1') {
-            this.house.houseAgency = response.data.agencyId;
-            console.log(this.house.houseAgency);
-          }
+
+          this.house.randomAgency = response.data.agencyId;
+          console.log(this.house.houseAgency, "有没有");
+
         }
       }).catch(response => {
         console.log(response);
@@ -218,67 +219,98 @@
       /*输入提示结束*/
       /**上传信息*/
       submit(houseRules) {
-        this.$refs[houseRules].validate((valid) => {
-          if (valid) {//如果输入验证通过
-            this.loading = true;//loading效果
-
-            //将格式改为统一，方便存入后台
-            this.house.houseAddr = this.house.Addr.a_building + '-' + this.house.Addr.a_unit + '-' + this.house.Addr.a_doors;
-            console.log(this.house);
-
-            let data = this.house;
-            console.log(data);
-            this.$axios.post('http://localhost:8080/House/Save', JSON.stringify(data),
-              {
-                headers: {'Content-Type': 'application/json;charset=UTF-8'}
+        if (this.$store.getters.getRoles !== 'Owner') {
+          this.$confirm('请登录房主账号', '权限不足', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+          }).then(() => {
+            this.$router.push("/login")
+          })
+        } else {
+          this.$refs[houseRules].validate((valid) => {
+            if (valid) {//如果输入验证通过
+              this.loading = true;//loading效果
+              //将格式改为统一，方便存入后台
+              this.house.houseAddr = this.house.Addr.a_building + '-' + this.house.Addr.a_unit + '-' + this.house.Addr.a_doors;
+              if (this.house.radioA === "1") {
+                this.house.houseAgency = this.house.randomAgency;
               }
-            ).then(response => {
-              console.log(response);
-              console.log(response.data);
-              if (response.data === "success") {
-                this.loading = false
-              } else if (response.data === "existed") {
-                this.$alert('该房屋正在销售', '房屋存在', {
-                  confirmButtonText: '确定',
-                  type: 'warning',
-                  callback: action => {
-                    this.$message({
-                      message: `请检查所填信息或联系业务员处理`
-                    });
-                  }
-                });
-              } else if (response.data === "failed") {
-                this.$alert('房屋注册出错', '错误', {
-                  confirmButtonText: '确定',
-                  type: 'error',
-                  callback: action => {
-                    this.$message({
-                      message: `请再试一遍或联系客服人员`
-                    });
-                  }
-                });
-              }
-            }).catch(response => {
-              console.log(response);
-              console.log(response.data);
-              this.$message({
-                message: `error `,
-                type: 'error'
-              });
-            })
-          } else {//输入验证不通过信息不足 提示
-            console.log('error submit!!');
-            this.$alert('请完善房屋信息', '信息不足', {
-              confirmButtonText: '确定',
-              callback: action => {
+              console.log(this.house);
+
+              let data = this.house;
+              console.log(data, '!!!');
+              this.$axios.post('http://localhost:8080/House/Save', JSON.stringify(data),
+                {
+                  headers: {'Content-Type': 'application/json;charset=UTF-8'}
+                }
+              ).then(response => {
+                console.log(response);
+                console.log(response.data);
+                if (response.data === "success") {
+                  this.loading = false
+                  this.$message({
+                    message: `上传成功`,
+                    type: 'success'
+                  });
+                  this.$router.push('../myhouse')
+                } else if (response.data === "existed") {
+                  this.$alert('该房屋正在销售', '房屋存在', {
+                    confirmButtonText: '确定',
+                    type: 'warning',
+                    callback: action => {
+                      this.$message({
+                        message: `请检查所填信息或联系业务员处理`
+                      });
+                    }
+                  });
+                  this.loading = false
+                } else if (response.data === "failed") {
+                  this.$alert('房屋注册出错', '错误', {
+                    confirmButtonText: '确定',
+                    type: 'error',
+                    callback: action => {
+                      this.$message({
+                        message: `请再试一遍或联系客服人员`
+                      });
+                    }
+                  });
+                  this.loading = false
+                } else if (response.data === "info_needed") {
+                  this.$alert('请完善信息', '错误', {
+                    confirmButtonText: '确定',
+                    type: 'error',
+                    callback: action => {
+                      this.$message({
+                        message: `请检查房主信息和中介信息`
+                      });
+                    }
+                  });
+                  this.loading = false
+                }
+              }).catch(response => {
+                console.log(response);
+                console.log(response.data);
                 this.$message({
-                  message: `请完善房屋信息`
+                  message: `error `,
+                  type: 'error'
                 });
-              }
-            });
-            return false;//结束
-          }
-        });
+                this.loading = false
+              })
+            } else {//输入验证不通过信息不足 提示
+              console.log('error submit!!');
+              this.$alert('请完善房屋信息', '信息不足', {
+                confirmButtonText: '确定',
+                callback: action => {
+                  this.$message({
+                    message: `请完善房屋信息`
+                  });
+                }
+              });
+              return false;//结束
+            }
+          });
+        }
+
 
       },
 

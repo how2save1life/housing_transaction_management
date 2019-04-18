@@ -151,11 +151,11 @@
                 <el-option label="女士" value="f">女士</el-option>
               </el-select>
             </el-form-item>
-<!--            <el-form-item label="目标代理费" prop="agencyFee">
-              <el-input v-model="Agency.agencyFee" placeholder="请输入您的目标代理收费" prop="agencyFee" autocomplete="off">
-                <template slot="append">元</template>
-              </el-input>
-            </el-form-item>-->
+            <!--            <el-form-item label="目标代理费" prop="agencyFee">
+                          <el-input v-model="Agency.agencyFee" placeholder="请输入您的目标代理收费" prop="agencyFee" autocomplete="off">
+                            <template slot="append">元</template>
+                          </el-input>
+                        </el-form-item>-->
           </el-form>
         </div>
         <div slot="footer" class="dialog-footer">
@@ -164,7 +164,7 @@
         </div>
       </el-dialog>
       <!--注册 中介 结束-->
-{{$store.getters.getRoles}}
+      <!--{{$store.getters.getRoles}}-->
     </div>
   </div>
 </template>
@@ -173,6 +173,7 @@
   import $store from "../store";
 
   export default {
+    inject:["reload"],
     name: "LoginAndRegister",
     data() {
       //判定两次输入的密码是否一致
@@ -191,7 +192,7 @@
       };
       return {
         //登陆数据
-        test:'',
+        test: '',
         form: {
           username: '',
           password: '',
@@ -272,7 +273,7 @@
           agencySelfid: '',
           agencySex: '',
           agencyPhone: '',
-          agencyFee: ''
+          //agencyFee: ''
         },
         agencyRules: {
           agencyId: [{required: true, message: '请输入用户名', trigger: 'blur'}],
@@ -296,8 +297,8 @@
       }
 
     },
-    computed:{
-      show(){
+    computed: {
+      show() {
         return this.$store.getters.getRoles
       }
     },
@@ -312,6 +313,7 @@
             message: '注册成功',
             type: 'success'
           });
+          this.reload()
         } else if (info === "registered") {
           this.$message({
             showClose: true,
@@ -342,8 +344,29 @@
             message: '登陆成功',
             type: 'success'
           });
-          this.$store.commit('storeRoles',this.form.user);//修改vuex中roles
-          this.$store.commit('storeUserId',this.form.username);////修改vuex中用户账号
+          this.$store.commit('storeRoles', this.form.user);//修改vuex中roles
+          this.$store.commit('storeUserId', this.form.username);////修改vuex中用户账号
+          this.$axios.get("http://localhost:8080/" + this.form.user + /findMe/ + this.form.username).then(response => {
+            console.log(response.data)
+            switch (this.form.user) {
+              case"Agency":
+                this.$store.commit('storeUserHead', response.data.agencyHead);////修改vuex中用户头像
+                //console.log(this.$store.getters.getUserHead)
+                break;
+              case "Buyer":
+                this.$store.commit('storeUserHead', response.data.buyerHead);////修改vuex中用户头像
+                //console.log(this.$store.getters.getUserHead)
+                break;
+              case "Owner":
+                this.$store.commit('storeUserHead', response.data.ownerHead);////修改vuex中用户头像
+                //console.log(this.$store.getters.getUserHead)
+                break;
+            }
+          })
+          setTimeout(() =>{
+            window.location.reload()
+          },500);
+          this.$router.push('/showhouse')
           //this.test=this.$store.getters.getRoles
           //console.log(this.show)
           //console.log(this.$store.getters.getRoles)
@@ -382,7 +405,7 @@
             console.log(response.data);
             this.$message({
               message: `error`,
-              type:'error'
+              type: 'error'
             });
           })
         }
@@ -404,7 +427,7 @@
             console.log(response.data);
             this.$message({
               message: `error`,
-              type:'error'
+              type: 'error'
             });
           })
         }
@@ -426,7 +449,7 @@
             console.log(response.data);
             this.$message({
               message: `error`,
-              type:'error'
+              type: 'error'
             });
           })
         }
@@ -501,6 +524,7 @@
         else {
           return;
         }
+        console.log(data)
         //像后台传参数
         this.$axios.post(url, JSON.stringify(data),
           {
@@ -515,7 +539,7 @@
           console.log(response.data);
           this.$message({
             message: `error`,
-            type:'error'
+            type: 'error'
           });
         })
       }

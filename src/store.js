@@ -11,24 +11,26 @@ const state = {
   //存储用户权限信息，初始时为空
   info: {
     roles: 'visitor',
-    userId: ''
+    userId: '',
+    userHead: ''
   },
 
 }
 
 const getters = {
-    getRoles: state => state.info.roles,
-    getUserId: state => state.info.userId,
-    getInfo: state => state.info
-/*  getRoles(state) {
-    return state.info.roles
-  },
-  getUserId(state) {
-    return state.info.userId
-  },
-  getInfo(state) {
-    return state.info
-  }*/
+  getRoles: state => state.info.roles,
+  getUserId: state => state.info.userId,
+  getUserHead: state => state.info.userHead,
+  getInfo: state => state.info
+  /*  getRoles(state) {
+      return state.info.roles
+    },
+    getUserId(state) {
+      return state.info.userId
+    },
+    getInfo(state) {
+      return state.info
+    }*/
 }
 
 const mutations = {
@@ -46,6 +48,12 @@ const mutations = {
     console.log('lll')
     console.log(state.info.userId)
   },
+  storeUserHead(state, head) {
+    state.info.userHead = head
+    storeLocalStore(state)
+    console.log('lll')
+    console.log(state.info.userHead)
+  },
 }
 
 const actions = {
@@ -54,6 +62,9 @@ const actions = {
   },
   storeUserId: ({commit}, {id}) => {
     commit('storeUserId', {id});
+  },
+  storeUserHead: ({commit}, {head}) => {
+    commit('storeUserHead', {head});
   }
 }
 

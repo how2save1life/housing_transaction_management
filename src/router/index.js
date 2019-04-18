@@ -3,7 +3,6 @@ import Router from 'vue-router'
 import Header from '@/components/box/Header'
 import LeftBox from '@/components/box/LeftBox'
 import MainBox from '@/components/box/MainBox'
-import HelloWorld from '@/components/HelloWorld'
 import HouseSave from '@/components/HouseSave'
 import HouseShow from '@/components/HouseShow'
 import AgencyShow from '@/components/AgencyShow'
@@ -39,11 +38,10 @@ export const constantRouterMap = [
       {
         path: '/savehouse',
         component: resolve => require(['../components/HouseSave.vue'], resolve),//懒加载
-        name: '权限测试页',
-        meta: {role: ['Owner'], title: '上架房屋', requiresAuth: true,}  //页面需要的权限
+        meta: {role: ['Owner','visitor'], title: '上架房屋', requiresAuth: true,}  //页面需要的权限
       },
       {
-        path: '/showcollect',
+        path: '/mycollect',
         component: resolve => require(['../components/CollectShow.vue'], resolve),//懒加载
         requiresAuth: true,
         meta: {role: ['Buyer'], title: '买家收藏', requiresAuth: true,}  //页面需要的权限
@@ -56,6 +54,16 @@ export const constantRouterMap = [
         path: '/me',
         component: resolve => require(['../components/UserShow.vue'], resolve),//懒加载
         meta: {role: ['Buyer','Owner','Agency'],title: '我的信息', requiresAuth: true}
+      },
+      {
+        path: '/mydeal',
+        component: resolve => require(['../components/DealShow.vue'], resolve),//懒加载
+        meta: {role: ['Buyer','Owner','Agency'],title: '我的交易', requiresAuth: true}
+      },
+      {
+        path: '/data',
+        component: resolve => require(['../components/DataSum.vue'], resolve),//懒加载
+        meta: {title: '数据一览', requiresAuth: false}
       },
     ]
   },

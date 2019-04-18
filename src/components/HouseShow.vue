@@ -24,35 +24,46 @@
         stripe
         style="width: 100%"
         row-key="houseId"
-
-
         v-loading="loading"
       ><!---->
-        <el-table-column type="expand"><!--展开内容-->
+        <!--展开内容-->
+        <el-table-column type="expand">
           <template slot-scope="props">
             <el-form label-position="left" class="demo-table-expand">
-              <el-col :span="12">
-                <el-form-item label="具体位置">
-                  <span>{{ props.row.houseAddr}}</span>
-                </el-form-item>
-                <el-form-item label="房屋面积">
-                  <span>{{ props.row.houseArea}} （平方米）</span>
-                </el-form-item>
-                <el-form-item label="房屋描述" style="width: 100%">
-                  <span style="width: 80%;">{{props.row.houseDescribe}}</span>
-                </el-form-item>
-              </el-col>
-              <el-col :span="10">
-                <el-form-item label="业务员代码">
-                  <span>{{ props.row.houseAgency}}</span>
-                </el-form-item>
-                <el-form-item label="业务员姓名">
-                  <span>{{ props.row.agencyName}}</span>
-                </el-form-item>
-                <el-form-item label="联系电话">
-                  <span>{{ props.row.agencyPhone}}</span>
-                </el-form-item>
-              </el-col>
+              <el-row>
+                <el-col :span="12">
+                  <el-form-item label="具体位置">
+                    <span>{{ props.row.houseAddr}}</span>
+                  </el-form-item>
+                  <el-form-item label="房屋面积">
+                    <span>{{ props.row.houseArea}} （平方米）</span>
+                  </el-form-item>
+                  <el-form-item label="房屋描述" style="width: 100%">
+                    <span style="width: 80%;">{{props.row.houseDescribe}}</span>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="10">
+                  <el-form-item label="业务员代码">
+                    <span>{{ props.row.houseAgency}}</span>
+                  </el-form-item>
+                  <el-form-item label="业务员姓名">
+                    <span>{{ props.row.agencyName}}</span>
+                  </el-form-item>
+                  <el-form-item label="联系电话">
+                    <span>{{ props.row.agencyPhone}}</span>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-carousel :interval="4000" height="300px">
+                  <el-carousel-item v-for="item in imagebox(props.row)" :key="item.id">
+                    <div style="text-align: center;width: 100%">
+                      <img :src="item.idView" :onerror="errorpic" style=" height: 300px;">
+                    </div>
+
+                  </el-carousel-item>
+                </el-carousel>
+              </el-row>
             </el-form>
           </template>
         </el-table-column>
@@ -90,7 +101,6 @@
             <span v-if="props.row.houseLayout==='more'">五室以上</span>
           </template>
         </el-table-column>
-
         <el-table-column
           label="每平米售价（万元）"
           prop="housePrice"
@@ -139,9 +149,10 @@
     name: "HouseShow",
     data() {
       return {
+        errorpic: 'this.src="' + require('../../static/pics/house/nopic.jpg') + '"',
         house: [],
         // housedata:[],
-        raw: [],
+        //raw: [],
         search: '',
         pagesize: 10,//每页条数
         currentPage: 1,//当前页码，默认第一页开始
@@ -189,9 +200,21 @@
         console.log(response);
         console.log(response.data);
       })
+
+
     },
     methods: {
-      clearFilter() {//清除表单筛选
+      //走马灯
+      imagebox(row) {
+        console.log(row.housePic)
+        var pics = [];
+        for (var i = 1; i < 6; i++) {
+          pics.push({id: i, idView: "../../static" + row.housePic + i.toString() + ".jpg"});
+        }
+        return pics
+      },
+      //清除表单筛选
+      clearFilter() {
         this.$message('清除筛选');
         this.$refs.houseref.clearFilter();
       },
@@ -224,8 +247,9 @@
         else {//当前页面买家登录
           let data = {
             collectHouse: row.houseId,
-            collectBuyer: this.user
+            collectBuyer: this.userId
           }
+          console.log(data,"info")
           //收藏房屋
           this.$axios.post('http://localhost:8080/Collect/Save', JSON.stringify(data),
             {
@@ -309,7 +333,7 @@
   }
 </script>
 
-<style>
+<style scoped>
   .demo-table-expand {
     font-size: 0;
   }
@@ -323,5 +347,21 @@
     margin-right: 0;
     margin-bottom: 0;
     width: 50%;
+  }
+
+  .el-carousel__item h3 {
+    color: #475669;
+    font-size: 18px;
+    opacity: 0.75;
+    line-height: 300px;
+    margin: 0;
+  }
+
+  .el-carousel__item:nth-child(2n) {
+    background-color: #99a9bf;
+  }
+
+  .el-carousel__item:nth-child(2n+1) {
+    background-color: #d3dce6;
   }
 </style>
